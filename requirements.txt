@@ -1,0 +1,7 @@
+#package installing
+ultralytics
+sahi
+Pillow  # PIL is the old name; use Pillow
+numpy
+torch
+
