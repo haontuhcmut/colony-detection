@@ -1,0 +1,5 @@
+#package installing
+ultralytics
+pandas
+cv
+pyqt6
