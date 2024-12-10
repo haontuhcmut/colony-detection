@@ -3,3 +3,4 @@ ultralytics
 pandas
 cv
 pyqt6
+opencv-python

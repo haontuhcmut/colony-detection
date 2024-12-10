@@ -1,5 +1,6 @@
 import sys
 import cv2
+import csv
 from PyQt6.QtWidgets import QApplication, QLabel, QPushButton, QVBoxLayout, QWidget
 from PyQt6.QtGui import QImage, QPixmap
 from PyQt6.QtCore import QTimer
@@ -61,21 +62,32 @@ class WebcamYOLOApp(QWidget):
             # Annotate image with YOLO results
             annotated_image = results[0].plot()
 
-            # Convert annotated image to QImage for display
-            annotated_image = cv2.cvtColor(annotated_image, cv2.COLOR_BGR2RGB)
-            image = QImage(annotated_image, annotated_image.shape[1], annotated_image.shape[0],
-                           QImage.Format.Format_RGB888)
-            self.video_label.setPixmap(QPixmap.fromImage(image))
+            # Save annotated image
+            predicted_image_path = "predicted_image.jpg"
+            cv2.imwrite(predicted_image_path, annotated_image)
 
             # Extract prediction details
-            result_text = []
-            for box in results[0].boxes:  # Iterate over each bounding box
+            predictions = []
+            for box in results[0].boxes:
                 cls_name = self.model.names[int(box.cls.item())]  # Class name
-                confidence = box.conf.item()  # Convert confidence tensor to scalar
-                result_text.append(f"{cls_name} ({confidence:.2f})")
+                confidence = box.conf.item()  # Confidence score
+                x_min, y_min, x_max, y_max = box.xyxy[0].tolist()  # Bounding box coordinates
+                predictions.append([cls_name, confidence, x_min, y_min, x_max, y_max])
 
-            # Display results
+            # Save results to CSV
+            csv_file_path = "prediction_results.csv"
+            with open(csv_file_path, mode="w", newline="") as file:
+                writer = csv.writer(file)
+                writer.writerow(["Class", "Confidence", "X_min", "Y_min", "X_max", "Y_max"])
+                writer.writerows(predictions)
+
+            # Update the UI
+            result_text = [f"{p[0]} ({p[1]:.2f})" for p in predictions]
             self.result_label.setText("Prediction Results:\n" + "\n".join(result_text))
+
+            # Notify the user
+            print(f"Predicted image saved to: {predicted_image_path}")
+            print(f"Prediction results saved to: {csv_file_path}")
 
     def closeEvent(self, event):
         """Release the webcam resource on close."""
