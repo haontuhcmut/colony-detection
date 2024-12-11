@@ -4,3 +4,4 @@ pandas
 cv
 pyqt6
 opencv-python
+pyside6

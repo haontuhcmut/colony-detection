@@ -1,9 +1,17 @@
 import sys
 import cv2
 import csv
-from PyQt6.QtWidgets import QApplication, QLabel, QPushButton, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import (
+    QApplication,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+    QLineEdit,
+    QHBoxLayout
+)
 from PyQt6.QtGui import QImage, QPixmap
-from PyQt6.QtCore import QTimer
+from PyQt6.QtCore import QTimer, Qt
 from ultralytics import YOLO
 
 
@@ -11,30 +19,57 @@ class WebcamYOLOApp(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Webcam Capture and Counting")
-        self.setGeometry(100, 100, 400, 400)
+        self.setGeometry(100, 100, 1000, 640)
 
-        # Initialize webcam
+        #Initialize webcam
         self.cap = cv2.VideoCapture(0)
 
-        # Load model
+        #Load model
         self.model = YOLO('runs/detect/train8/weights/best.pt')
 
         # UI components
         self.video_label = QLabel(self)
+        self.video_label.setText("Video feed will appear here")
+        self.video_label.setStyleSheet("background-color: #cccccc;")
+        self.video_label.setFixedSize(480, 480)
+
         self.capture_button = QPushButton("Capture and Counting", self)
+
+        self.id_sample = QLabel("ID_SAMPLES", self)
+        self.id_sample_edit = QLineEdit(self)
+
+        self.save = QPushButton("Save", self)
+
         self.result_label = QLabel("Counting Results:", self)
 
         # Layout
-        layout = QVBoxLayout()
-        layout.addWidget(self.video_label)
-        layout.addWidget(self.capture_button)
-        layout.addWidget(self.result_label)
-        self.setLayout(layout)
+        main_layout = QVBoxLayout()
+
+        # Add video feed
+        main_layout.addWidget(self.video_label, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        # Add capture button
+        main_layout.addWidget(self.capture_button)
+
+        # Add ID sample input
+        id_layout = QHBoxLayout()
+        id_layout.addWidget(self.id_sample)
+        id_layout.addWidget(self.id_sample_edit)
+        main_layout.addLayout(id_layout)
+
+        # Add save
+        main_layout.addWidget(self.save)
+
+        # Add result label
+        main_layout.addWidget(self.result_label)
+
+        # Set main layout
+        self.setLayout(main_layout)
 
         # Timer for updating video feed
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_frame)
-        self.timer.start(30)
+        self.timer.start(10)
 
         # Connect button to capture and predict function
         self.capture_button.clicked.connect(self.capture_and_predict)
